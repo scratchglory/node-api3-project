@@ -9,13 +9,17 @@ const logger = require("./middleware/logger");
 
 // adding server
 const server = express();
-const port = 4040;
+const port = 3330;
 
 // adding middleware
 server.use(express.json());
 // cross-origin resource sharing
 server.use(cors());
 // server.use(morgan())
+// Error Middleware
+server.use((error, req, res, next) => {
+  res.status(500).json({ message: "ERROR MIDDLEWARE" });
+});
 
 // short == never closing the request
 // long == closes and returns data
@@ -23,8 +27,8 @@ server.use(logger("long"));
 
 // adding routers
 server.use("/", welcomeRouter);
-server.use("/users", userRouter);
 server.use("/posts", postRouter);
+server.use("/users", userRouter);
 
 // Listening
 server.listen(port, () => {

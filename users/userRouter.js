@@ -11,9 +11,10 @@ router.get("/", (req, res) => {
     .then((users) => {
       res.status(200).json(users);
     })
-    .catch((err) => {
-      console.log(err);
-      res.status(500).json({ message: "ERROR getting users" });
+    .catch((error) => {
+      console.log(error);
+      //   res.status(500).json({ message: "ERROR getting users" });
+      next(error);
     });
 });
 
@@ -28,13 +29,14 @@ router.get("/:id/posts", validateUserId(), (req, res) => {
     .then((posts) => {
       res.status(200).json(posts);
     })
-    .catch((err) => {
-      res.status(500).json({ message: "ERRor cant get posts" });
+    .catch((error) => {
+      //   res.status(500).json({ message: "ERRor cant get posts" });
+      next(error);
     });
 });
 
 router.post("/", validateUser(), (req, res) => {
-  console.log("Router.Post", req);
+  console.log("Router.Post", req.body);
   users
     .insert(req.body)
     .then((user) => {
@@ -46,17 +48,9 @@ router.post("/", validateUser(), (req, res) => {
     });
 });
 
-// router.post("/:id/posts", validateUserId(), (req, res) => {
-//     console.log("Router/Post/id/posts", req.body)
-//     // user_id, text
-//     if (!req.body.text) {
-//         // must have return statement, otherwise the funciton will continue wihtout running
-//         return res.status(400).json({
-//             message: "Need context"
-//         })
-//     }
-
-// });
+router.post("/:id/posts", validateUserId(), validatePost(), (req, res) => {
+  console.log("User/id/posts", req.body);
+});
 
 router.delete("/:id", (req, res) => {
   users
@@ -91,11 +85,15 @@ function validateUser() {
   return (req, res, next) => {
     // if body is missing, cancel the request
     // if body is missing require name field, cnacel request
-    console.log(req.body.name);
-    if (!req.body.name || !req.body) {
+    console.log("Body", req.body);
+    console.log("Body Name", req.body.name);
+    if (!req.body) {
       return res.status(400).json({
         message: "MISSING user data",
       });
+    }
+    if (!req.body.name) {
+      return res.status(400).json({ message: "MISSING required name field" });
     }
     // next must be called on the outside so that it is not called when data is missing
     next();
@@ -104,7 +102,7 @@ function validateUser() {
 
 //validates the user id on every request tha texpects a user id parameter
 function validateUserId() {
-  // if the id parameter is valie, store user obj as req.user
+  // if the id parameter is valid, store user obj as req.user
   // if the id param does NOT match, cancel the request with 400
   return (req, res, next) => {
     // console.log(req.params.id);
@@ -127,8 +125,18 @@ function validateUserId() {
   };
 }
 
-function validatePost(req, res, next) {
-  // do your magic!
+function validatePost() {
+  // if body is missing, cancel request
+  // if body.text is missing, cancel request
+  return (req, res, next) => {
+    if (!req.body) {
+      return res.status(400).json({ message: "MISSING post data" });
+    }
+    if (!req.body.text) {
+      return res.status(400).json({ message: "MISSING text field" });
+    }
+    next(error);
+  };
 }
 
 module.exports = router;
