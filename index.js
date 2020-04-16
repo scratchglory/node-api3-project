@@ -1,5 +1,7 @@
 const express = require("express");
 const userRouter = require("./users/userRouter");
+const welcomeRouter = require("./users/welcomeRouter");
+const postRouter = require("./posts/postRouter");
 // http request logger middleware for node.js
 const morgan = require("morgan");
 const cors = require("cors");
@@ -20,7 +22,9 @@ server.use(cors());
 server.use(logger("long"));
 
 // adding routers
+server.use("/", welcomeRouter);
 server.use("/users", userRouter);
+server.use("/posts", postRouter);
 
 // Listening
 server.listen(port, () => {
